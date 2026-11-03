@@ -1,0 +1,26 @@
+# Incident Response Playbook: Incident 2
+
+## Incident Details
+* **Incident ID:** `INC-002`
+* **Target System:** Windows 10/11 Enterprise Workstation (Host: `WIN-CORP-WK04`)
+* **Severity:** High
+* **Category:** Privilege Escalation & Unauthorized Script Execution
+
+---
+
+## 1. Detection & Triage
+* **Detection Source:** Windows Security Event Logs (`Event Viewer` -> `Security`).
+* **Symptom:** A standard domain user account (`jdoe`) executed an unauthorized PowerShell script that attempted to enumerate local administrator groups and dump sensitive registry hives.
+* **Evidence (Windows Event IDs):**
+  * **Event ID 4688 (Process Creation):** Logged `powershell.exe` execution with obfuscated execution parameters pointing to a temporary user directory (`C:\Users\jdoe\AppData\Local\Temp\script.ps1`).
+  * **Event ID 4720 (Account Modification / Creation):** A new local user account (`support_backdoor`) was created outside of standard IT change windows.
+
+---
+
+## 2. Containment & Eradication
+* **Network Isolation:** Immediately disconnected the compromised workstation from the corporate network to prevent internal lateral movement or data exfiltration.
+* **Process Termination:** Terminated the active malicious PowerShell process using Task Manager and command-line administrative tools:
+  ```cmd
+  taskkill /f /im powershell.exe
+  net localgroup administrators support_backdoor /delete
+net user support_backdoor /delete
